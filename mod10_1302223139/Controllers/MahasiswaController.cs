@@ -4,40 +4,66 @@ namespace mod10_1302223139.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class MahasiswaController
+    public class MahasiswaController : ControllerBase
     {
-        private static List<Mahasiswa> listMahasiswa = new List<Mahasiswa>()
-            {
-                new Mahasiswa(" Ihsan Maulana", "1302223139", new List<string> (){"Basis Data"}, 2024),
-                new Mahasiswa(" Fachruddin Ghalibi", "1302223107", new List<string> (){"Konstruksi Perangkat Lunak"}, 2024),
-                new Mahasiswa(" Muhammad Fadlan Kamal", "1302223095", new List<string>(){"Pemrograman Berbasis Objek"}, 2024)
-            };
+        private readonly MahasiswaSingleton _mahasiswaSingleton = MahasiswaSingleton.Instance;
+
         [HttpGet]
-
-
-
-
         public IEnumerable<Mahasiswa> Get()
         {
-            return listMahasiswa;
+            return _mahasiswaSingleton.ListMahasiswa;
         }
 
         [HttpGet("{id}")]
-        public Mahasiswa Get(int id)
+        public IActionResult Get(int id)
         {
-            return listMahasiswa[id];
+            if (id < 0 || id >= _mahasiswaSingleton.ListMahasiswa.Count)
+            {
+                return NotFound("Mahasiswa dengan ID tersebut tidak ditemukan.");
+            }
+
+            return Ok(_mahasiswaSingleton.ListMahasiswa[id]);
         }
 
         [HttpPost]
-        public void Post([FromBody] Mahasiswa mahasiswa)
+        public IActionResult Post([FromBody] Mahasiswa mahasiswa)
         {
-            listMahasiswa.Add(mahasiswa);
+            if (mahasiswa == null)
+            {
+                return BadRequest("Data mahasiswa tidak valid.");
+            }
+
+            _mahasiswaSingleton.ListMahasiswa.Add(mahasiswa);
+            return CreatedAtAction(nameof(Get), new { id = _mahasiswaSingleton.ListMahasiswa.Count - 1 }, mahasiswa);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] Mahasiswa mahasiswa)
+        {
+            if (id < 0 || id >= _mahasiswaSingleton.ListMahasiswa.Count)
+            {
+                return NotFound("Mahasiswa dengan ID tersebut tidak ditemukan.");
+            }
+
+            if (mahasiswa == null)
+            {
+                return BadRequest("Data mahasiswa tidak valid.");
+            }
+
+            _mahasiswaSingleton.ListMahasiswa[id] = mahasiswa;
+            return Ok(mahasiswa);
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
-            listMahasiswa.RemoveAt(id);
+            if (id < 0 || id >= _mahasiswaSingleton.ListMahasiswa.Count)
+            {
+                return NotFound("Mahasiswa dengan ID tersebut tidak ditemukan.");
+            }
+
+            _mahasiswaSingleton.ListMahasiswa.RemoveAt(id);
+            return NoContent();
         }
     }
 }
